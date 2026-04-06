@@ -1,0 +1,4 @@
+repository "3D Praktine uzduotis/3D Praktine uzduotis@5773871291911@cloud"
+  path "/"
+    br "/main"
+    co "/main"
