@@ -24,6 +24,10 @@ public class ProjectileShooter : MonoBehaviour
 
         GameObject projectileObj = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
 
+        Projectile projectile = projectileObj.GetComponent<Projectile>();
+        if (projectile != null)
+            projectile.Initialize(gameObject);
+
         Rigidbody rb = projectileObj.GetComponent<Rigidbody>();
         if (rb != null)
             rb.linearVelocity = firePoint.forward * projectileSpeed;

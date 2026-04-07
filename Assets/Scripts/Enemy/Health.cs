@@ -42,6 +42,7 @@ public class Health : MonoBehaviour, IDamageable
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
     public string DisplayName => string.IsNullOrWhiteSpace(entityName) ? gameObject.name : entityName;
+    public DamageRequest LastDamageRequest { get; private set; }
 
     private Vector3 startPosition;
     private Quaternion startRotation;
@@ -70,7 +71,7 @@ public class Health : MonoBehaviour, IDamageable
             IsDead = true;
     }
 
-    public void TakeDamage(float damage, Vector3 hitPoint, Vector3 hitDirection)
+    public void TakeDamage(DamageRequest request)
     {
         if (IsDead)
             return;
@@ -78,7 +79,9 @@ public class Health : MonoBehaviour, IDamageable
         if (invulnerable)
             return;
 
-        float finalDamage = Mathf.Max(0f, damage * damageMultiplier);
+        LastDamageRequest = request;
+
+        float finalDamage = Mathf.Max(0f, request.amount * damageMultiplier);
         if (finalDamage <= 0f)
             return;
 
@@ -87,8 +90,9 @@ public class Health : MonoBehaviour, IDamageable
 
         if (logDamageToConsole)
         {
+            string sourceName = request.source != null ? request.source.name : "Unknown";
             Debug.Log(
-                $"{DisplayName} took {finalDamage} damage. Health left: {currentHealth}/{maxHealth}",
+                $"{DisplayName} took {finalDamage} damage from {sourceName}. Health left: {currentHealth}/{maxHealth}",
                 this
             );
         }
@@ -96,7 +100,31 @@ public class Health : MonoBehaviour, IDamageable
         onDamaged?.Invoke();
 
         if (currentHealth <= 0f)
-            Die(hitPoint);
+        {
+            Vector3 deathPoint = request.hitPoint.sqrMagnitude > 0.0001f
+                ? request.hitPoint
+                : transform.position;
+
+            Die(deathPoint);
+        }
+    }
+
+    
+    public void TakeDamage(float damage, Vector3 hitPoint, Vector3 hitDirection)
+    {
+        Vector3 dir = hitDirection.sqrMagnitude > 0.001f
+            ? hitDirection.normalized
+            : transform.forward;
+
+        DamageRequest request = new DamageRequest(
+            damage,
+            null,
+            hitPoint,
+            -dir,
+            dir
+        );
+
+        TakeDamage(request);
     }
 
     public void Heal(float amount)

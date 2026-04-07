@@ -65,7 +65,20 @@ public class MeleeAttack : MonoBehaviour
         {
             Collider col = hits[i];
 
-            Vector3 closestPoint = col.ClosestPoint(origin);
+            if (col == null)
+                continue;
+
+            if (col.transform.root == transform.root)
+                continue;
+
+            IDamageable damageable = FindDamageable(col);
+            if (damageable == null)
+                continue;
+
+            if (damagedTargets.Contains(damageable))
+                continue;
+
+            Vector3 closestPoint = GetSafeClosestPoint(col, origin);
             Vector3 toTarget = closestPoint - origin;
             float distance = toTarget.magnitude;
 
@@ -79,17 +92,23 @@ public class MeleeAttack : MonoBehaviour
                     continue;
             }
 
-            IDamageable damageable = FindDamageable(col);
-            if (damageable == null)
-                continue;
-
-            if (damagedTargets.Contains(damageable))
-                continue;
-
             damagedTargets.Add(damageable);
 
-            Vector3 hitDirection = toTarget.sqrMagnitude > 0.001f ? toTarget.normalized : forward;
-            damageable.TakeDamage(damage, closestPoint, hitDirection);
+            Vector3 hitDirection = toTarget.sqrMagnitude > 0.001f
+                ? toTarget.normalized
+                : forward;
+
+            Vector3 hitNormal = -hitDirection;
+
+            DamageRequest request = new DamageRequest(
+                damage,
+                gameObject,
+                closestPoint,
+                hitNormal,
+                hitDirection
+            );
+
+            damageable.TakeDamage(request);
 
             if (hitEffectPrefab != null)
             {
@@ -98,6 +117,18 @@ public class MeleeAttack : MonoBehaviour
                 Destroy(vfx, hitEffectLifetime);
             }
         }
+    }
+
+    private Vector3 GetSafeClosestPoint(Collider col, Vector3 position)
+    {
+        if (col is BoxCollider || col is SphereCollider || col is CapsuleCollider)
+            return col.ClosestPoint(position);
+
+        MeshCollider mesh = col as MeshCollider;
+        if (mesh != null && mesh.convex)
+            return col.ClosestPoint(position);
+
+        return col.bounds.ClosestPoint(position);
     }
 
     private IDamageable FindDamageable(Collider col)

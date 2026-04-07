@@ -58,6 +58,7 @@
     <Compile Include="Assets/Scripts/Player/ProjectileShooter.cs" />
     <Compile Include="Assets/Scripts/Level/SceneTrigger.cs" />
     <Compile Include="Assets/Scripts/Enemy/Health.cs" />
+    <Compile Include="Assets/Scripts/Interface/DamageRequest.cs" />
     <Compile Include="Assets/Scripts/Level/Highlight.cs" />
     <Compile Include="Assets/Scripts/Level/DoorController.cs" />
     <Compile Include="Assets/UnityTechnologies/ParticlePack/EffectExamples/Misc Effects/Scripts/SpawnEffect.cs" />

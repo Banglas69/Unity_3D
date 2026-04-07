@@ -97,9 +97,6 @@ public class EnemyAI : MonoBehaviour
         currentState.Enter();
     }
 
-    // -----------------------
-    // Gravity
-    // -----------------------
     private void GravityTick()
     {
         if (cc.isGrounded)
@@ -113,9 +110,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // -----------------------
-    // Idle Patrol
-    // -----------------------
     public void BeginIdlePatrol()
     {
         patrolDirection = transform.forward;
@@ -155,9 +149,6 @@ public class EnemyAI : MonoBehaviour
         return Physics.Raycast(origin, transform.forward, wallCheckDistance, wallMask, QueryTriggerInteraction.Ignore);
     }
 
-    // -----------------------
-    // Chase
-    // -----------------------
     public void ChasePlayer()
     {
         Vector3 dir = GetFlatDirectionToPlayer();
@@ -181,9 +172,6 @@ public class EnemyAI : MonoBehaviour
         RotateTowards(dir);
     }
 
-    // -----------------------
-    // Attack
-    // -----------------------
     public void TryAttack()
     {
         if (isAttacking)
@@ -214,6 +202,9 @@ public class EnemyAI : MonoBehaviour
 
         for (int i = 0; i < hits.Length; i++)
         {
+            if (hits[i].transform.root == transform.root)
+                continue;
+
             IDamageable damageable = FindDamageable(hits[i]);
             if (damageable == null)
                 continue;
@@ -228,7 +219,17 @@ public class EnemyAI : MonoBehaviour
                 ? (hitPoint - origin).normalized
                 : transform.forward;
 
-            damageable.TakeDamage(meleeDamage, hitPoint, hitDirection);
+            Vector3 hitNormal = -hitDirection;
+
+            DamageRequest request = new DamageRequest(
+                meleeDamage,
+                gameObject,
+                hitPoint,
+                hitNormal,
+                hitDirection
+            );
+
+            damageable.TakeDamage(request);
         }
 
         isAttacking = false;
@@ -248,9 +249,6 @@ public class EnemyAI : MonoBehaviour
         Destroy(vfx, attackEffectLifetime);
     }
 
-    // -----------------------
-    // Detection
-    // -----------------------
     public bool CanSeePlayer()
     {
         if (player == null)
@@ -289,9 +287,6 @@ public class EnemyAI : MonoBehaviour
         return dist <= range;
     }
 
-    // -----------------------
-    // Movement Helpers
-    // -----------------------
     private void MoveInDirection(Vector3 dir, float speed)
     {
         if (dir.sqrMagnitude <= 0.001f)
@@ -343,9 +338,6 @@ public class EnemyAI : MonoBehaviour
         return pos;
     }
 
-    // -----------------------
-    // Damageable
-    // -----------------------
     private IDamageable FindDamageable(Collider col)
     {
         MonoBehaviour[] behaviours = col.GetComponentsInParent<MonoBehaviour>(true);
@@ -359,9 +351,6 @@ public class EnemyAI : MonoBehaviour
         return null;
     }
 
-    // -----------------------
-    // Player Lookup
-    // -----------------------
     private void FindPlayerIfMissing()
     {
         if (player != null)
@@ -372,9 +361,6 @@ public class EnemyAI : MonoBehaviour
             player = found.transform;
     }
 
-    // -----------------------
-    // Gizmos
-    // -----------------------
     private void OnDrawGizmos()
     {
         if (drawWhenNotSelected)
