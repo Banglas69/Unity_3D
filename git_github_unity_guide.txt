@@ -1,0 +1,556 @@
+# GitHub Push / Pull Guide for Unity Projects
+
+A practical, safe workflow for using Git and GitHub across multiple computers without breaking your project history.
+
+This guide is written for Unity projects, but most commands also work for any normal Git repository.
+
+## What this guide covers
+
+- First-time Git setup on a computer
+- Cloning a project on another PC or Mac
+- Pulling the latest changes safely
+- Pushing your own changes safely
+- Switching between multiple computers
+- Fixing common Git errors
+- Using `.gitignore` correctly for Unity
+- Avoiding unnecessary conflicts
+
+## 1. One-time setup on each computer
+
+Before you commit anything on a new computer, set your Git identity:
+
+```bash
+git config --global user.name "Aivaras"
+git config --global user.email "your_github_email@example.com"
+```
+
+Check that it was saved:
+
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+If GitHub uses a private noreply email for your account, use that instead of your real email.
+
+## 2. Clone the repository on another computer
+
+If you want to work on the project from another PC or Mac for the first time:
+
+```bash
+git clone https://github.com/Banglas69/Unity_2D.git
+cd Unity_2D
+```
+
+Replace the URL if the repository is different.
+
+Check that everything is connected correctly:
+
+```bash
+git remote -v
+git branch
+git status
+```
+
+## 3. The safest everyday workflow
+
+Use this exact command order every time you start working on a different computer or want to update your project safely:
+
+```bash
+git status
+git pull --rebase origin main
+git add .
+git commit -m "Describe your changes"
+git push origin main
+```
+
+What each command does:
+
+- `git status` shows what branch you are on and whether you have changed files
+- `git pull --rebase origin main` gets the newest changes from GitHub before you start pushing your own
+- `git add .` stages your changed files
+- `git commit -m "Describe your changes"` saves your changes locally
+- `git push origin main` uploads your new commit to GitHub
+
+This is the main workflow you should follow most of the time.
+
+## 4. Pull the latest changes only
+
+If you only want to download the latest version from GitHub without committing anything yet:
+
+```bash
+git pull --rebase origin main
+```
+
+Why use `--rebase`:
+
+- it keeps Git history cleaner
+- it avoids unnecessary merge commits
+- it works better when switching between two computers
+
+## 5. Push your changes after editing files
+
+After you have made changes to your project:
+
+```bash
+git add .
+git commit -m "Updated project"
+git push origin main
+```
+
+Useful checks before committing:
+
+```bash
+git status
+git diff
+git diff --cached
+```
+
+Useful history check:
+
+```bash
+git log --oneline --graph --decorate -n 10
+```
+
+## 6. Best workflow when switching between computers
+
+When you move from one PC or Mac to another, use this routine:
+
+```bash
+git status
+git pull --rebase origin main
+```
+
+Then work on the project. After you finish:
+
+```bash
+git add .
+git commit -m "Describe your changes"
+git push origin main
+```
+
+That prevents most common Git problems.
+
+## 7. If push is rejected
+
+If you see an error like:
+
+```text
+! [rejected] main -> main (fetch first)
+```
+
+or:
+
+```text
+! [rejected] main -> main (non-fast-forward)
+```
+
+it means GitHub has newer commits than your current computer.
+
+Fix it with:
+
+```bash
+git pull --rebase origin main
+git push origin main
+```
+
+This makes your current computer catch up before pushing.
+
+## 8. If there is a merge conflict
+
+If `git pull --rebase origin main` stops because the same file was changed in two places, check which files are conflicted:
+
+```bash
+git status
+```
+
+Open the conflicted file. You may see markers like:
+
+```text
+<<<<<<< HEAD
+your code
+=======
+other code
+>>>>>>> branch-name
+```
+
+Manually edit the file so it contains the final correct version only. After fixing it:
+
+```bash
+git add .
+git rebase --continue
+git push origin main
+```
+
+If another conflict appears, repeat the same steps:
+
+- open the conflicted file
+- fix the code manually
+- run `git add .`
+- run `git rebase --continue`
+
+If you want to cancel the rebase completely:
+
+```bash
+git rebase --abort
+```
+
+## 9. If you have local changes and cannot pull
+
+Sometimes Git refuses to pull because you already changed files locally.
+
+### Option A: Commit first
+
+```bash
+git add .
+git commit -m "Work in progress"
+git pull --rebase origin main
+```
+
+### Option B: Stash temporarily
+
+```bash
+git stash
+git pull --rebase origin main
+git stash pop
+```
+
+If `git stash pop` creates conflicts, fix them the same way you would fix a normal merge conflict.
+
+## 10. Check current branch, remote, and state
+
+These three commands solve a lot of confusion:
+
+```bash
+git branch
+git remote -v
+git status
+```
+
+What they tell you:
+
+- `git branch` shows your current branch
+- `git remote -v` shows which GitHub repository you are connected to
+- `git status` shows changed files and whether your branch is ahead or behind
+
+## 11. First push for a brand-new local project
+
+If your project is not a Git repository yet:
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/Banglas69/YourRepo.git
+git push -u origin main
+```
+
+Replace the repository URL with the correct one.
+
+## 12. Connect an existing local project to a different repository
+
+If your project already has Git but points to the wrong GitHub repository:
+
+```bash
+git remote -v
+git remote remove origin
+git remote add origin https://github.com/Banglas69/YourNewRepo.git
+git push -u origin main
+```
+
+This removes the old remote and connects the project to the new one.
+
+## 13. Clone on another computer and continue working
+
+On a different PC or Mac, your first-time setup looks like this:
+
+```bash
+git clone https://github.com/Banglas69/Unity_2D.git
+cd Unity_2D
+git pull --rebase origin main
+```
+
+Then, after making changes:
+
+```bash
+git add .
+git commit -m "Describe your changes"
+git push origin main
+```
+
+## 14. Unity projects and `.gitignore`
+
+For Unity, you usually want to keep these folders in Git:
+
+```text
+Assets/
+Packages/
+ProjectSettings/
+```
+
+You usually want to ignore generated or unnecessary files like:
+
+```text
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+*.csproj
+*.sln
+.DS_Store
+```
+
+Important: `.gitignore` does not remove files that are already tracked by Git. It only prevents new ignored files from being added later.
+
+If Unity junk files were already tracked, clean them like this:
+
+```bash
+git rm -r --cached .
+git add .
+git commit -m "Apply Unity gitignore"
+git push origin main
+```
+
+What this does:
+
+- removes all files from Git tracking only
+- keeps the files on your computer
+- re-adds files while respecting `.gitignore`
+
+## 15. If `.gitignore` exists but Git still pushes too much
+
+This usually means one of these happened:
+
+- the `.gitignore` file exists on GitHub but not locally
+- unwanted files were already tracked before `.gitignore` took effect
+- old commits still contain those files
+
+To check whether `.gitignore` is actually present in the project root:
+
+```bash
+ls -la
+```
+
+To test whether a file is being ignored:
+
+```bash
+git check-ignore -v Assembly-CSharp.csproj
+git check-ignore -v Library
+git check-ignore -v Temp
+```
+
+If those files are already tracked, run:
+
+```bash
+git rm -r --cached .
+git add .
+git commit -m "Apply Unity gitignore"
+git push origin main
+```
+
+## 16. Authentication on another computer
+
+On another computer, GitHub may ask you to sign in when you first push.
+
+That is normal.
+
+Git credentials are usually stored per device, so one computer being logged in does not automatically log in the other one.
+
+If prompted, log in with your GitHub account or token.
+
+## 17. Check what will be committed before committing
+
+Before you commit, inspect your changes:
+
+```bash
+git status
+git diff
+git diff --cached
+```
+
+This helps you avoid accidentally committing things like:
+
+- `.DS_Store`
+- temporary files
+- Unity-generated solution and project files
+- scene changes you did not mean to keep
+
+## 18. Most useful commands to remember
+
+Pull latest changes:
+
+```bash
+git pull --rebase origin main
+```
+
+See changed files:
+
+```bash
+git status
+```
+
+Add everything:
+
+```bash
+git add .
+```
+
+Commit:
+
+```bash
+git commit -m "Describe your changes"
+```
+
+Push:
+
+```bash
+git push origin main
+```
+
+Check remote:
+
+```bash
+git remote -v
+```
+
+Check branch:
+
+```bash
+git branch
+```
+
+Show recent history:
+
+```bash
+git log --oneline --graph --decorate -n 10
+```
+
+## 19. If Git says "Author identity unknown"
+
+Set your name and email:
+
+```bash
+git config --global user.name "Aivaras"
+git config --global user.email "your_github_email@example.com"
+```
+
+Then try committing again.
+
+## 20. If Git says "fetch first" or "non-fast-forward"
+
+This means the remote repository has newer commits than your local one.
+
+Fix it with:
+
+```bash
+git pull --rebase origin main
+git push origin main
+```
+
+## 21. If Git says "stale info" on `--force-with-lease`
+
+Fetch first, then try again:
+
+```bash
+git fetch origin
+git push --force-with-lease origin main
+```
+
+If you are absolutely sure you want to overwrite the remote repository with your local state, use:
+
+```bash
+git push --force origin main
+```
+
+Warning: `--force` can erase commits on GitHub. Do not use it as a normal workflow.
+
+## 22. If Git says "refusing to merge unrelated histories"
+
+This happens when the local repository history and remote repository history started separately.
+
+Only use this when you truly want to combine those two histories:
+
+```bash
+git pull --rebase --allow-unrelated-histories origin main
+```
+
+If your goal is to fully replace the remote repository with your local one, force push may be more appropriate.
+
+## 23. If you want to completely restart Git history for a local project
+
+If your local repo became messy and you want to start clean from the current project state:
+
+```bash
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/Banglas69/Unity_2D.git
+git push --force -u origin main
+```
+
+Warning:
+
+- `rm -rf .git` deletes Git history for that local project
+- it does not delete your Unity files
+- only do this if you intentionally want a fresh repository history
+
+## 24. Safe habits that prevent problems
+
+- Pull before starting work on another computer
+- Commit small logical changes instead of giant ones
+- Write clear commit messages
+- Check `git status` often
+- Avoid force push unless absolutely necessary
+- Keep Unity generated files ignored
+- Fix conflicts carefully instead of rushing through them
+- Make sure `.gitignore` is in the project root
+
+## 25. Short version
+
+### First time on another computer
+
+```bash
+git clone https://github.com/Banglas69/Unity_2D.git
+cd Unity_2D
+```
+
+### Before working
+
+```bash
+git pull --rebase origin main
+```
+
+### After making changes
+
+```bash
+git add .
+git commit -m "Describe your changes"
+git push origin main
+```
+
+### If push is rejected
+
+```bash
+git pull --rebase origin main
+git push origin main
+```
+
+## 26. Recommended personal workflow for this project
+
+Use this exact sequence every time:
+
+```bash
+git status
+git pull --rebase origin main
+git add .
+git commit -m "Describe your changes"
+git push origin main
+```
+
+If you keep following that order, you will avoid most Git problems when working across multiple computers.
